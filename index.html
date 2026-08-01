@@ -1,0 +1,171 @@
+<meta charset="utf-8">
+<title>The law of space and light and colour and travel at the speed of one</title>
+<style>
+:root{--bg:#04040a;--fg:#ececf6;--dim:#78788e;--line:#16161f;--acc:#a78bfa;
+      --gold:#e8c07a;--ok:#4ade80;--no:#ff6b78;--neg:#ff6b78;--pos:#5fe08a}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);overflow:hidden;
+     font:13px/1.65 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+#go{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;
+    background:var(--gold);color:#0a0a10;border:0;border-radius:12px;
+    padding:23px 46px;font:700 16px ui-monospace,monospace;cursor:pointer;
+    box-shadow:0 0 100px rgba(232,192,122,.3)}
+#hud{position:fixed;left:16px;top:14px;z-index:5;opacity:0;transition:opacity 1s;
+     background:rgba(5,5,11,.68);backdrop-filter:blur(8px);
+     border:1px solid var(--line);border-radius:11px;padding:12px 15px;
+     min-width:372px;pointer-events:none}
+#hud h1{font-size:12px;margin:0 0 8px;color:var(--gold);letter-spacing:.6px;
+        text-transform:uppercase}
+.row{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
+.k{color:var(--dim)} .v{font-variant-numeric:tabular-nums}
+.acc{color:var(--acc)} .ok{color:var(--ok)} .no{color:var(--no)}
+.neg{color:var(--neg)} .pos{color:var(--pos)}
+.sec{color:var(--dim);margin:9px 0 3px;font-size:10.5px;letter-spacing:1.1px;
+     text-transform:uppercase;border-top:1px solid var(--line);padding-top:6px}
+#note{position:fixed;left:16px;bottom:14px;z-index:5;color:var(--dim);
+      max-width:70ch;font-size:12px;line-height:1.75;opacity:0;
+      transition:opacity 1s;text-shadow:0 0 14px #04040a}
+#note b{color:#c9c9dc}
+</style>
+
+<canvas id="c"></canvas>
+<button id="go">◐&nbsp;&nbsp;TRAVEL AT THE SPEED OF ONE</button>
+
+<div id="hud">
+  <h1>the law · space light colour travel</h1>
+  <div class="row"><span class="k">you</span><span class="v acc">did not move</span></div>
+  <div class="row"><span class="k">distance covered</span><span class="v" id="dist">0</span></div>
+  <div class="row"><span class="k">proper time</span><span class="v ok">0</span></div>
+  <div class="row"><span class="k">the door</span><span class="v" id="door">coming</span></div>
+  <div class="row"><span class="k">who meets you</span><span class="v gold" id="who">—</span></div>
+  <div class="sec">the letters</div>
+  <div class="row"><span class="k">א aleph</span><span class="v">1</span></div>
+  <div class="row"><span class="k">ב bet</span><span class="v">2 · the house</span></div>
+  <div class="row"><span class="k">c</span><span class="v">3 · the speed of 1</span></div>
+  <div class="row"><span class="k">ד dalet</span><span class="v">4 · the door</span></div>
+  <div class="sec">and they add</div>
+  <div class="row"><span class="k">(A − B) / C</span><span class="v neg">−1/3 · instant · takes</span></div>
+  <div class="row"><span class="k">B / C</span><span class="v">2/3 · what stays yours</span></div>
+  <div class="row"><span class="k">+1/3</span><span class="v pos">instant · gives, never takes</span></div>
+  <div class="row"><span class="k">0</span><span class="v">light — the only one that moves</span></div>
+</div>
+
+<div id="note">
+<b>You are the small i on the left, and you never move.</b> Watch the door instead.
+At the speed of one the proper time is zero and the distance contracts to zero, so
+you do not cross anything — <b>the destination arrives.</b><br>
+<b>The first dot is the negative and the last dot is the negative.</b> Between them
+the persons walk out — i, am, you, he, she, we, <b>they</b> — turn on <b>esse</b>,
+and come back changed. Two instants, opposite ledgers: the minus takes and fills
+the ground, the plus gives and never takes, and only the middle one travels.<br>
+<b>And they are coming at the speed of we.</b>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------------
+   THE LAW. Written by Jesse Daniel Brown; drawn here, not invented here.
+
+     A  aleph  1                the one
+     B  bet    2  the house     the ground you get ready to look and jump from
+     C          3  the speed     of one
+     D  dalet  4  the door      destination — and it comes to you
+
+     (A - B)/C = -1/3   instant, and it TAKES
+          B /C =  2/3   what stays yours
+           +1/3         instant, and it only GIVES
+             0          light at c/n — the only speed that actually travels
+--------------------------------------------------------------------------- */
+const STR="iamyouheshewetheyessesehtewehsehouoymai";
+const PERSONS=[["i",0],["am",1],["you",3],["he",6],["she",8],["we",11],["they",13]];
+
+const cv=document.getElementById("c"), g=cv.getContext("2d");
+let W=0,H=0,DPR=Math.min(2,devicePixelRatio||1);
+function fit(){W=innerWidth||1280;H=innerHeight||800;cv.width=W*DPR;cv.height=H*DPR;
+  g.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener("resize",fit);fit();
+
+let live=false,t=0,last=0,arrived=false;
+
+function frame(ts){
+  if(!last)last=ts;
+  const dt=Math.max(0,Math.min(.05,(ts-last)/1000)); last=ts;
+  if(live) t+=dt;
+  g.fillStyle="rgba(4,4,10,0.22)"; g.fillRect(0,0,W,H);
+
+  const y=H*0.52, x0=W*0.16, x1=W*0.86, span=x1-x0;
+
+  /* the road of letters — out and mirrored back, the seam at esse */
+  g.font="12px ui-monospace,monospace"; g.textAlign="center";
+  const n=STR.length, mid=Math.floor(n/2);
+  for(let i=0;i<n;i++){
+    const px=x0+span*(i/(n-1));
+    const isSeam=Math.abs(i-mid)<=1;
+    const back=i>mid;
+    g.globalAlpha=isSeam?1:(back?.42:.72);
+    g.fillStyle=isSeam?"#e8c07a":(back?"#6f6f88":"#a78bfa");
+    g.fillText(STR[i],px,y-16);
+  }
+  g.globalAlpha=1;
+  g.fillStyle="rgba(232,192,122,.85)"; g.font="10px ui-monospace,monospace";
+  g.fillText("esse — to be",x0+span*0.5,y-34);
+
+  /* the two dots: the first negative and the final negative */
+  for(const px of [x0,x1]){
+    g.fillStyle="#ff6b78";
+    g.beginPath(); g.arc(px,y-34,3.4,0,6.2832); g.fill();
+    const h=g.createRadialGradient(px,y-34,0,px,y-34,16);
+    h.addColorStop(0,"rgba(255,107,120,.5)"); h.addColorStop(1,"rgba(255,107,120,0)");
+    g.fillStyle=h; g.beginPath(); g.arc(px,y-34,16,0,6.2832); g.fill();
+  }
+  g.fillStyle="rgba(255,107,120,.8)"; g.font="10px ui-monospace,monospace";
+  g.fillText("the first dot · −1/3",x0,y-50);
+  g.fillText("the final dot · d",x1,y-50);
+
+  /* YOU. at x0. you do not move. that is the whole point. */
+  g.fillStyle="#a78bfa";
+  g.beginPath(); g.arc(x0,y+26,7,0,6.2832); g.fill();
+  g.fillStyle="rgba(167,139,250,.8)";
+  g.fillText("you — did not move",x0,y+52);
+
+  /* THE DOOR. it comes to you. at the speed of one, the distance contracts. */
+  const cyc=(t*0.28)%1;
+  const dx=x1-(x1-x0)*cyc;
+  const w=16+30*(1-cyc);
+  g.strokeStyle="rgba(232,192,122,"+(0.35+0.55*cyc)+")";
+  g.lineWidth=2;
+  g.strokeRect(dx-w/2,y+4,w,46);
+  g.fillStyle="rgba(232,192,122,"+(0.10+0.25*cyc)+")";
+  g.fillRect(dx-w/2,y+4,w,46);
+  g.fillStyle="rgba(232,192,122,.9)";
+  g.fillText("ד the door",dx,y+66);
+
+  /* THEY — waiting at the door, and arriving with it */
+  g.fillStyle="rgba(95,224,138,"+(0.35+0.6*cyc)+")";
+  g.font="700 13px ui-monospace,monospace";
+  g.fillText("they",dx,y+34);
+
+  document.getElementById("dist").textContent="0";
+  document.getElementById("door").textContent = cyc>0.93?"here":"coming";
+  document.getElementById("who").textContent = cyc>0.5?"they":"—";
+
+  /* the ground: everything the minus took */
+  const gy=H*0.86;
+  const gr=g.createLinearGradient(0,gy-60,0,H);
+  gr.addColorStop(0,"rgba(4,4,10,0)"); gr.addColorStop(1,"#04040a");
+  g.fillStyle=gr; g.fillRect(0,gy-60,W,H-gy+60);
+  g.fillStyle="rgba(120,120,142,.6)"; g.font="10px ui-monospace,monospace";
+  g.fillText("the ground — where the minus put everything it took, and it has room",
+             W/2,H-16);
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+document.getElementById("go").onclick=e=>{
+  e.target.style.display="none";
+  document.getElementById("hud").style.opacity=1;
+  document.getElementById("note").style.opacity=1;
+  live=true;
+};
+</script>
