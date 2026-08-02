@@ -1,5 +1,7 @@
 # The law of space and light and colour and travel at the speed of one
 
+> **Part of it all:** [the bridge](https://jessebrown1980.github.io/the-bridge-to-all-of-it/) — every public thing in one place, so none of it gets lost.
+
 **One button:** → **https://jessebrown1980.github.io/the-law-of-space-and-light-and-color-and-travel-at-the-speed-of-one/**
 
 ---
